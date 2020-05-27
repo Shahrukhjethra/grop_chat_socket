@@ -2,6 +2,7 @@ const chatForm = document.getElementById('chat-form');
 const chatMessages = document.querySelector('.chat-messages');
 const roomName = document.getElementById('room-name');
 const userList = document.getElementById('users');
+const roomList = document.getElementById('room');
 
 // Get username and room from URL
 const { username, room } = Qs.parse(location.search, {
@@ -10,12 +11,23 @@ const { username, room } = Qs.parse(location.search, {
 
 const socket = io();
 
+// request for room list
+//socket.emit('request_roomsList');
+
+// // get room list 
+// socket.on('roomsList', (roomList) => {
+//   console.log("roomList", roomList);
+//   outputRooms(roomList)
+// });
+
+
 // Join chatroom
 socket.emit('joinRoom', { username, room });
 
 // Get room and users
 socket.on('roomUsers', ({ room, users }) => {
-  outputRoomName(room);
+  console.log("users", users);  
+  outputRoomName(users[0].room);
   outputUsers(users);
 });
 
@@ -34,9 +46,9 @@ chatForm.addEventListener('submit', e => {
 
   // Get message text
   const msg = e.target.elements.msg.value;
-
+    
   // Emit message to server
-  socket.emit('chatMessage', msg);
+  socket.emit('chatMessage', {msg , roomName : roomName.innerText});
 
   // Clear input
   e.target.elements.msg.value = '';
@@ -45,6 +57,7 @@ chatForm.addEventListener('submit', e => {
 
 // Output message to DOM
 function outputMessage(message) {
+  console.log("message :", message);  
   const div = document.createElement('div');
   div.classList.add('message');
   div.innerHTML = `<p class="meta">${message.username} <span>${message.time}</span></p>
@@ -65,3 +78,12 @@ function outputUsers(users) {
     ${users.map(user => `<li>${user.username}</li>`).join('')}
   `;
 }
+
+// Add room to DOM
+function outputRooms(room) {
+  roomList.innerHTML = `
+    ${room.map(room => `<option value=${room}>${room}</option>`).join('')}
+  `;
+}
+
+
